@@ -1,0 +1,293 @@
+@import "tailwindcss";
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
+@source '../../vendor/livewire/flux/stubs/**/*.blade.php';
+
+@theme {
+    /* Dark Mode - Primary Colors (Green) */
+    --color-dark-primary-50: oklch(0.95 0.03 150);
+    --color-dark-primary-100: oklch(0.9 0.05 150);
+    --color-dark-primary-200: oklch(0.8 0.08 150);
+    --color-dark-primary-300: oklch(0.7 0.12 150);
+    --color-dark-primary-400: oklch(0.6 0.16 150);
+    --color-dark-primary-500: oklch(0.5 0.18 150);
+    --color-dark-primary-600: oklch(0.45 0.18 150);
+    --color-dark-primary-700: oklch(0.4 0.16 150);
+    --color-dark-primary-800: oklch(0.35 0.14 150);
+    --color-dark-primary-900: oklch(0.3 0.12 150);
+
+    /* Dark Mode - Background Colors */
+    --color-dark-bg: oklch(0.12 0.02 150);
+    --color-dark-bg-elevated: oklch(0.16 0.03 150);
+    --color-dark-bg-highlight: oklch(0.2 0.04 150);
+    --color-dark-bg-modal: oklch(0.18 0.03 150);
+
+    /* Dark Mode - Text Colors */
+    --color-dark-text-primary: oklch(0.98 0.01 150);
+    --color-dark-text-secondary: oklch(0.75 0.02 150);
+    --color-dark-text-tertiary: oklch(0.6 0.02 150);
+    --color-dark-text-muted: oklch(0.5 0.02 150);
+
+    /* Dark Mode - Border & Divider Colors */
+    --color-dark-border: oklch(0.25 0.04 150);
+    --color-dark-border-hover: oklch(0.35 0.06 150);
+    --color-dark-border-active: oklch(0.5 0.18 150);
+    --color-dark-divider: oklch(0.2 0.03 150);
+
+    /* Dark Mode - Surface Colors */
+    --color-dark-surface: oklch(0.15 0.03 150);
+    --color-dark-surface-hover: oklch(0.2 0.04 150);
+    --color-dark-surface-active: oklch(0.22 0.05 150);
+    --color-dark-surface-selected: oklch(0.25 0.06 150);
+
+    /* Dark Mode - Sidebar Colors */
+    --color-dark-sidebar-bg: oklch(0.14 0.03 150);
+    --color-dark-sidebar-text: oklch(0.9 0.01 150);
+    --color-dark-sidebar-hover: oklch(0.22 0.05 150);
+    --color-dark-sidebar-active: oklch(0.5 0.18 150);
+    --color-dark-sidebar-border: oklch(0.25 0.04 150);
+
+    /* Dark Mode - Semantic Colors */
+    --color-dark-success-50: oklch(0.95 0.03 150);
+    --color-dark-success-100: oklch(0.85 0.06 150);
+    --color-dark-success-500: oklch(0.6 0.18 150);
+    --color-dark-success-600: oklch(0.5 0.18 150);
+
+    --color-dark-danger-50: oklch(0.95 0.03 25);
+    --color-dark-danger-100: oklch(0.85 0.06 25);
+    --color-dark-danger-500: oklch(0.65 0.2 25);
+    --color-dark-danger-600: oklch(0.55 0.2 25);
+
+    --color-dark-warning-50: oklch(0.95 0.03 75);
+    --color-dark-warning-100: oklch(0.85 0.06 75);
+    --color-dark-warning-500: oklch(0.7 0.16 75);
+    --color-dark-warning-600: oklch(0.6 0.16 75);
+
+    --color-dark-info-50: oklch(0.95 0.03 210);
+    --color-dark-info-100: oklch(0.85 0.06 210);
+    --color-dark-info-500: oklch(0.65 0.15 210);
+    --color-dark-info-600: oklch(0.55 0.15 210);
+
+    /* Dark Mode - Shadow Colors */
+    --color-dark-shadow-sm: oklch(0.05 0.02 150 / 0.3);
+    --color-dark-shadow-md: oklch(0.05 0.02 150 / 0.4);
+    --color-dark-shadow-lg: oklch(0.05 0.02 150 / 0.5);
+
+    /* Dark Mode - Input Colors */
+    --color-dark-input-bg: oklch(0.18 0.03 150);
+    --color-dark-input-border: oklch(0.25 0.04 150);
+    --color-dark-input-focus: oklch(0.5 0.18 150);
+    --color-dark-input-text: oklch(0.95 0.01 150);
+    --color-dark-input-placeholder: oklch(0.55 0.02 150);
+
+    /* Dark Mode - State Colors */
+    --color-dark-hover: oklch(0.22 0.05 150 / 0.4);
+    --color-dark-pressed: oklch(0.25 0.06 150 / 0.6);
+    --color-dark-focus: oklch(0.5 0.18 150 / 0.2);
+    --color-dark-disabled: oklch(0.2 0.02 150 / 0.5);
+}
+
+@theme {
+    /* Primary Colors - Green tones for growth, harmony and freshness */
+    --color-primary-50: oklch(0.98 0.02 150);
+    --color-primary-100: oklch(0.95 0.04 150);
+    --color-primary-200: oklch(0.9 0.08 150);
+    --color-primary-300: oklch(0.8 0.12 150);
+    --color-primary-400: oklch(0.7 0.16 150);
+    --color-primary-500: oklch(0.6 0.2 150);
+    --color-primary-600: oklch(0.5 0.2 150);
+    --color-primary-700: oklch(0.4 0.18 150);
+    --color-primary-800: oklch(0.32 0.14 150);
+    --color-primary-900: oklch(0.25 0.1 150);
+    --color-primary-950: oklch(0.18 0.06 150);
+
+    /* Secondary Colors - Blue tones for trust and stability */
+    --color-secondary-50: oklch(0.98 0.01 240);
+    --color-secondary-100: oklch(0.95 0.02 240);
+    --color-secondary-200: oklch(0.88 0.04 240);
+    --color-secondary-300: oklch(0.78 0.08 240);
+    --color-secondary-400: oklch(0.68 0.12 240);
+    --color-secondary-500: oklch(0.58 0.16 240);
+    --color-secondary-600: oklch(0.48 0.16 240);
+    --color-secondary-700: oklch(0.4 0.14 240);
+    --color-secondary-800: oklch(0.32 0.1 240);
+    --color-secondary-900: oklch(0.24 0.06 240);
+
+    /* Accent Colors - Teal tones for modern highlights */
+    --color-accent-50: oklch(0.98 0.02 180);
+    --color-accent-100: oklch(0.95 0.04 180);
+    --color-accent-200: oklch(0.88 0.08 180);
+    --color-accent-300: oklch(0.78 0.12 180);
+    --color-accent-400: oklch(0.68 0.16 180);
+    --color-accent-500: oklch(0.58 0.18 180);
+    --color-accent-600: oklch(0.48 0.18 180);
+    --color-accent-700: oklch(0.4 0.16 180);
+    --color-accent-800: oklch(0.32 0.12 180);
+    --color-accent-900: oklch(0.24 0.08 180);
+
+    /* Sidebar Colors - Green-based theme */
+    --color-sidebar-bg: oklch(0.2 0.03 150);
+    --color-sidebar-text: oklch(0.95 0.01 150);
+    --color-sidebar-hover: oklch(0.28 0.05 150);
+    --color-sidebar-active: oklch(0.6 0.2 150);
+
+    /* Semantic Colors - Updated to match green primary theme */
+    --color-success-50: oklch(0.98 0.02 150);
+    --color-success-100: oklch(0.95 0.04 150);
+    --color-success-500: oklch(0.6 0.2 150);
+    --color-success-600: oklch(0.5 0.2 150);
+
+    /* Danger/Error Colors - Warm red tones */
+    --color-danger-50: oklch(0.98 0.02 25);
+    --color-danger-100: oklch(0.95 0.04 25);
+    --color-danger-500: oklch(0.65 0.22 25);
+    --color-danger-600: oklch(0.55 0.22 25);
+    --color-danger-700: oklch(0.45 0.2 25);
+
+    /* Warning Colors - Golden amber tones */
+    --color-warning-50: oklch(0.98 0.02 75);
+    --color-warning-100: oklch(0.95 0.05 75);
+    --color-warning-500: oklch(0.75 0.16 75);
+    --color-warning-600: oklch(0.65 0.16 75);
+
+    /* Info Colors - Sky blue tones */
+    --color-info-50: oklch(0.98 0.02 210);
+    --color-info-100: oklch(0.95 0.04 210);
+    --color-info-500: oklch(0.65 0.15 210);
+    --color-info-600: oklch(0.55 0.15 210);
+}
+
+/* Custom Theme Colors for School Management System */
+@theme {
+    /* Primary Colors - Blue tones for trust and professionalism */
+    --color-primary-50: oklch(0.97 0.01 250);
+    --color-primary-100: oklch(0.93 0.03 250);
+    --color-primary-200: oklch(0.85 0.06 250);
+    --color-primary-300: oklch(0.75 0.1 250);
+    --color-primary-400: oklch(0.65 0.14 250);
+    --color-primary-500: oklch(0.55 0.18 250);
+    --color-primary-600: oklch(0.45 0.18 250);
+    --color-primary-700: oklch(0.38 0.16 250);
+    --color-primary-800: oklch(0.3 0.12 250);
+    --color-primary-900: oklch(0.22 0.08 250);
+    --color-primary-950: oklch(0.15 0.05 250);
+
+    /* Secondary Colors - Green tones for success and growth */
+    --color-secondary-50: oklch(0.97 0.02 150);
+    --color-secondary-100: oklch(0.93 0.04 150);
+    --color-secondary-200: oklch(0.85 0.08 150);
+    --color-secondary-300: oklch(0.75 0.12 150);
+    --color-secondary-400: oklch(0.65 0.16 150);
+    --color-secondary-500: oklch(0.55 0.18 150);
+    --color-secondary-600: oklch(0.45 0.18 150);
+    --color-secondary-700: oklch(0.38 0.16 150);
+    --color-secondary-800: oklch(0.3 0.12 150);
+    --color-secondary-900: oklch(0.22 0.08 150);
+
+    /* Accent Colors - Purple tones for highlights */
+    --color-accent-50: oklch(0.97 0.02 280);
+    --color-accent-100: oklch(0.93 0.05 280);
+    --color-accent-200: oklch(0.85 0.1 280);
+    --color-accent-300: oklch(0.75 0.15 280);
+    --color-accent-400: oklch(0.65 0.2 280);
+    --color-accent-500: oklch(0.55 0.22 280);
+    --color-accent-600: oklch(0.45 0.22 280);
+    --color-accent-700: oklch(0.38 0.18 280);
+    --color-accent-800: oklch(0.3 0.14 280);
+    --color-accent-900: oklch(0.22 0.1 280);
+
+    /* Sidebar Colors */
+    --color-sidebar-bg: oklch(0.18 0.02 250);
+    --color-sidebar-text: oklch(0.85 0.02 250);
+    --color-sidebar-hover: oklch(0.25 0.04 250);
+    --color-sidebar-active: oklch(0.55 0.18 250);
+
+    /* Danger/Error Colors - Red tones */
+    --color-danger-50: oklch(0.97 0.02 25);
+    --color-danger-100: oklch(0.93 0.05 25);
+    --color-danger-500: oklch(0.55 0.22 25);
+    --color-danger-600: oklch(0.45 0.22 25);
+    --color-danger-700: oklch(0.38 0.18 25);
+
+    /* Warning Colors - Amber tones */
+    --color-warning-50: oklch(0.97 0.02 70);
+    --color-warning-100: oklch(0.93 0.05 70);
+    --color-warning-500: oklch(0.7 0.15 70);
+    --color-warning-600: oklch(0.6 0.15 70);
+
+    /* Info Colors - Cyan tones */
+    --color-info-50: oklch(0.97 0.02 210);
+    --color-info-100: oklch(0.93 0.05 210);
+    --color-info-500: oklch(0.6 0.15 210);
+    --color-info-600: oklch(0.5 0.15 210);
+
+    /* Success Colors - Additional green shades */
+    --color-success-50: oklch(0.97 0.02 150);
+    --color-success-100: oklch(0.93 0.04 150);
+    --color-success-500: oklch(0.55 0.18 150);
+    --color-success-600: oklch(0.45 0.18 150);
+}
+/* CSS Variables for Dark Mode Implementation */
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* Primary Colors */
+        --color-primary-50: var(--color-dark-primary-50);
+        --color-primary-100: var(--color-dark-primary-100);
+        --color-primary-200: var(--color-dark-primary-200);
+        --color-primary-300: var(--color-dark-primary-300);
+        --color-primary-400: var(--color-dark-primary-400);
+        --color-primary-500: var(--color-dark-primary-500);
+        --color-primary-600: var(--color-dark-primary-600);
+        --color-primary-700: var(--color-dark-primary-700);
+        --color-primary-800: var(--color-dark-primary-800);
+        --color-primary-900: var(--color-dark-primary-900);
+
+        /* Background & Surface */
+        --color-bg: var(--color-dark-bg);
+        --color-bg-elevated: var(--color-dark-bg-elevated);
+        --color-bg-highlight: var(--color-dark-bg-highlight);
+        --color-surface: var(--color-dark-surface);
+
+        /* Text */
+        --color-text-primary: var(--color-dark-text-primary);
+        --color-text-secondary: var(--color-dark-text-secondary);
+        --color-text-tertiary: var(--color-dark-text-tertiary);
+
+        /* Borders */
+        --color-border: var(--color-dark-border);
+        --color-border-hover: var(--color-dark-border-hover);
+
+        /* Sidebar */
+        --color-sidebar-bg: var(--color-dark-sidebar-bg);
+        --color-sidebar-text: var(--color-dark-sidebar-text);
+        --color-sidebar-hover: var(--color-dark-sidebar-hover);
+        --color-sidebar-active: var(--color-dark-sidebar-active);
+
+        /* Semantic Colors */
+        --color-success-50: var(--color-dark-success-50);
+        --color-success-500: var(--color-dark-success-500);
+        --color-danger-50: var(--color-dark-danger-50);
+        --color-danger-500: var(--color-dark-danger-500);
+        --color-warning-50: var(--color-dark-warning-50);
+        --color-warning-500: var(--color-dark-warning-500);
+        --color-info-50: var(--color-dark-info-50);
+        --color-info-500: var(--color-dark-info-500);
+    }
+}
+
+/* Hide scrollbar */
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.hide-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
+@custom-variant dark (&:where(.dark, .dark *));
+
+[x-cloak] {
+    display: none !important;
+}
