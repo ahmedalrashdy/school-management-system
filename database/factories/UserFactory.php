@@ -1,0 +1,63 @@
+<?php
+
+namespace Database\Factories;
+
+use App\Enums\GenderEnum;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
+ */
+class UserFactory extends Factory
+{
+    /**
+     * The current password being used by the factory.
+     */
+    protected static ?string $password;
+
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            'first_name' => fake()->firstName(),
+            'last_name' => fake()->lastName(),
+            'email' => fake()->unique()->safeEmail(),
+            'phone_number' => fake()->unique()->phoneNumber(),
+            'gender' => fake()->randomElement([GenderEnum::Male, GenderEnum::Female]),
+            'email_verified_at' => now(),
+            'password' => static::$password ??= 'password',
+            'remember_token' => Str::random(10),
+            'is_active' => true,
+            'is_admin' => false,
+            'avatar' => null,
+        ];
+    }
+
+    /**
+     * Define an admin state.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_admin' => true,
+            'email' => 'admin@gmail.com',
+            'password' => Hash::make('admin123'),
+        ]);
+    }
+
+    /**
+     * Indicate that the model's email address should be unverified.
+     */
+    public function unverified(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'email_verified_at' => null,
+        ]);
+    }
+}

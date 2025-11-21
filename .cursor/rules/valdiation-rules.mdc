@@ -1,0 +1,59 @@
+---
+alwaysApply: false
+---
+# 🧩 Rule: التحقق من المدخلات (Validation)
+
+## 🎯 الهدف
+ضمان التزام جميع عمليات **store** و **update** في المشروع باستخدام كائنات **Form Request** منظمة حسب نوع البوابة (Dashboard, Student Portal, Parent Portal, Teacher Portal, Public Portal).
+
+---
+
+## 🧱 التقنية الإلزامية
+- **يجب** أن يتم التحقق من المدخلات باستخدام كائنات `FormRequest` في جميع عمليات **store** و **update**.
+- يُمنع استخدام `$request->validate()` مباشرة داخل الـ Controller.
+- يجب أن تحتوي كل **FormRequest** على الدوال الثلاث التالية:
+  - `rules()` : لتحديد قواعد التحقق.
+  - `messages()` : لتحديد رسائل الأخطاء بالعربية.
+  - `authorize()` : للتحقق من صلاحية المستخدم الحالي.
+
+---
+
+## 📁 الموقع
+يجب إنشاء كائنات **FormRequest** داخل المسار:app/Http/Requests/<PortalType>/<ModelName>/
+
+حيث `<PortalType>` هو أحد الأنواع التالية:
+
+| نوع البوابة | المجلد المقابل | مثال لمسار التخزين |
+|--------------|----------------|--------------------|
+| لوحة التحكم (Dashboard) | `Dashboard` | `app/Http/Requests/Dashboard/Student/StoreStudentRequest.php` |
+| بوابة الطالب | `StudentPortal` | `app/Http/Requests/StudentPortal/Assignment/StoreAssignmentRequest.php` |
+| بوابة ولي الأمر | `ParentPortal` | `app/Http/Requests/ParentPortal/Feedback/StoreFeedbackRequest.php` |
+| بوابة المدرس | `TeacherPortal` | `app/Http/Requests/TeacherPortal/Exam/StoreExamRequest.php` |
+| البوابة العامة | `PublicPortal` | `app/Http/Requests/PublicPortal/Contact/StoreContactRequest.php` |
+
+---
+
+## 🧩 البنية المطلوبة لكل Form Request
+
+### ✅ الدالة rules()
+```php
+public function rules(): array
+{
+    return [
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:students,email',
+        'age' => 'nullable|integer|min:10',
+    ];
+}
+public function messages(): array
+{
+    return [
+        'name.required' => 'الاسم مطلوب.',
+        'email.required' => 'البريد الإلكتروني مطلوب.',
+        'email.unique' => 'هذا البريد الإلكتروني مسجّل مسبقاً.',
+    ];
+}
+public function authorize(): bool
+{
+    //the check authorize
+}
