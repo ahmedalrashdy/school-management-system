@@ -3,7 +3,13 @@
 namespace App\Providers;
 
 use App\Enums\PermissionEnum;
+use App\Models\Guardian;
+use App\Models\Student;
+use App\Models\Teacher;
 use App\Models\User;
+use App\Observers\GuardianObserver;
+use App\Observers\StudentObserver;
+use App\Observers\TeacherObserver;
 use App\Observers\UserObserver;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
@@ -36,8 +42,11 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
-        // Register User Observer
+        // Register Model Observers
         User::observe(UserObserver::class);
+        Teacher::observe(TeacherObserver::class);
+        Student::observe(StudentObserver::class);
+        Guardian::observe(GuardianObserver::class);
 
         $this->registerGuestWriteGuards();
 

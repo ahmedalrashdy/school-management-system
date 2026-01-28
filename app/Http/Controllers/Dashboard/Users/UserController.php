@@ -61,11 +61,16 @@ class UserController extends Controller implements HasMiddleware
      */
     public function manageRoles(User $user): View
     {
+        $coreRoleNames = ['طالب', 'مدرس', 'ولي أمر'];
+
+        $user->load('roles');
+
         return view('dashboard.users.manage-roles', [
             'user' => $user,
             'availableRoles' => Role::withCount('permissions')
-                ->whereNotIn('name', ['طالب', 'مدرس', 'ولي أمر'])->latest()->get(),
+                ->whereNotIn('name', $coreRoleNames)->latest()->get(),
             'currentRoles' => $user->roles,
+            'coreRoles' => $user->roles->whereIn('name', $coreRoleNames)->values(),
         ]);
     }
 

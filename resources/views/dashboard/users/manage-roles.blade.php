@@ -58,6 +58,39 @@
                 @endif
             </div>
 
+            @if ($coreRoles->count() > 0)
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        <i class="fas fa-lock mr-2"></i>
+                        الأدوار الأساسية للمستخدم
+                    </h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                        هذه الأدوار مرتبطة بملف المستخدم (طالب/مدرس/ولي أمر) ويتم الاحتفاظ بها تلقائياً.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        @foreach ($coreRoles as $role)
+                            <label
+                                class="flex items-center gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/60 opacity-80 cursor-not-allowed"
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked
+                                    disabled
+                                    class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                                >
+                                <div class="flex-1">
+                                    <div class="font-medium text-gray-900 dark:text-white">{{ $role->name }}</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                        دور أساسي
+                                    </div>
+                                </div>
+                            </label>
+                            <input type="hidden" name="roles[]" value="{{ $role->id }}">
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             <div class="mb-6">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                     <i class="fas fa-list mr-2"></i>
