@@ -24,3 +24,6 @@ Homestead.yaml
 Thumbs.db
 tables.php
 /docs
+/_plan
+/.cursor
+/.vscode
