@@ -76,7 +76,7 @@
                                     type="checkbox"
                                     checked
                                     disabled
-                                    class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                                    class="rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-900 dark:checked:bg-primary-600 dark:checked:border-primary-500 dark:focus:ring-primary-400"
                                 >
                                 <div class="flex-1">
                                     <div class="font-medium text-gray-900 dark:text-white">{{ $role->name }}</div>
