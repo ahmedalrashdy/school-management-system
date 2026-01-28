@@ -72,7 +72,7 @@ class AttendanceDashboard extends Component
     #[Computed()]
     public function currentSchoolDay(): ?SchoolDay
     {
-        // $day = SchoolDay::query()->inRandomOrder()->first();
+        return SchoolDay::query()->first();
         return SchoolDay::find(407);
     }
 

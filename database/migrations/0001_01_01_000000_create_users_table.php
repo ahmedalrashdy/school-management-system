@@ -30,7 +30,9 @@ return new class extends Migration {
             $table->softDeletes();
             $table->index(['first_name', 'last_name']);
         });
-        DB::statement('ALTER TABLE users ADD CONSTRAINT chk_email_or_phone CHECK (email IS NOT NULL OR phone_number IS NOT NULL)');
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE users ADD CONSTRAINT chk_email_or_phone CHECK (email IS NOT NULL OR phone_number IS NOT NULL)');
+        }
 
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

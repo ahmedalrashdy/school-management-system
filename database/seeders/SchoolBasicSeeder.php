@@ -91,70 +91,47 @@ class SchoolBasicSeeder extends Seeder
 
             $this->command->info('Exam Types created.');
 
-            // 6. السنوات الدراسية والأترام
-            // المنطق: 3 سنوات فقط - سنة مؤرشفة، سنة نشطة، سنة قادمة
+            // 6. سنة دراسية واحدة نشطة مع ترمين فقط (بدون عشوائية)
+            $now = Carbon::now();
+            $startYear = $now->month >= 9 ? $now->year : $now->year - 1;
+            $startYearDate = Carbon::create($startYear, 9, 1)->startOfDay();
+            $endYearDate = Carbon::create($startYear + 1, 6, 30)->endOfDay();
 
-            // Index 0: سنة مؤرشفة (Archived)
-            // Index 1: سنة نشطة (Active)
-            // Index 2: سنة قادمة (Upcoming)
+            $yearName = $startYearDate->format('Y').' - '.$endYearDate->format('Y');
 
-            $baseYear = Carbon::now()->subYears(1)->startOfYear()->setMonth(8);
+            $academicYear = AcademicYear::updateOrCreate([
+                'name' => $yearName,
+            ], [
+                'start_date' => $startYearDate,
+                'end_date' => $endYearDate,
+                'status' => AcademicYearStatus::Active,
+            ]);
 
-            for ($i = 0; $i < 3; $i++) {
-                // حساب تواريخ السنة
-                // في اليمن تبدأ السنة عادة في شهر 8 أو 9 وتنتهي في شهر 5 أو 6
-                $startYearDate = (clone $baseYear)->addYears($i);
-                $endYearDate = (clone $startYearDate)->addYear()->month(6)->endOfMonth();
+            // إنشاء الأترام (الفصول الدراسية) للسنة
+            $term1Start = $startYearDate->copy();
+            $term1End = $startYearDate->copy()->addMonths(4)->endOfMonth();
+            $term2Start = $term1End->copy()->addDay();
+            $term2End = $endYearDate->copy();
 
-                $yearName = $startYearDate->format('Y').' - '.$endYearDate->format('Y');
+            AcademicTerm::updateOrCreate([
+                'academic_year_id' => $academicYear->id,
+                'name' => 'الفصل الدراسي الأول',
+            ], [
+                'start_date' => $term1Start,
+                'end_date' => $term1End,
+                'is_active' => $now->between($term1Start, $term1End),
+            ]);
 
-                // تحديد الحالة
-                $status = AcademicYearStatus::Archived;
-                if ($i === 1) {
-                    $status = AcademicYearStatus::Active;
-                } elseif ($i === 2) {
-                    $status = AcademicYearStatus::Upcoming;
-                }
+            AcademicTerm::updateOrCreate([
+                'academic_year_id' => $academicYear->id,
+                'name' => 'الفصل الدراسي الثاني',
+            ], [
+                'start_date' => $term2Start,
+                'end_date' => $term2End,
+                'is_active' => $now->between($term2Start, $term2End),
+            ]);
 
-                $academicYear = AcademicYear::firstOrCreate([
-                    'name' => $yearName,
-                ], [
-                    'start_date' => $startYearDate,
-                    'end_date' => $endYearDate,
-                    'status' => $status,
-                ]);
-
-                // إنشاء الأترام (الفصول الدراسية) للسنة
-                // الفصل الأول: من شهر 8/9 إلى شهر 12/1
-                $term1Start = (clone $startYearDate);
-                $term1End = (clone $startYearDate)->addMonths(4)->endOfMonth(); // تقريباً شهر 12/1
-
-                // الفصل الثاني: من شهر 1/2 إلى شهر 5/6
-                $term2Start = (clone $term1End)->addDay();
-                $term2End = (clone $endYearDate);
-
-                // إنشاء الفصل الأول
-                AcademicTerm::firstOrCreate([
-                    'academic_year_id' => $academicYear->id,
-                    'name' => 'الفصل الدراسي الأول',
-                ], [
-                    'start_date' => $term1Start,
-                    'end_date' => $term1End,
-                    'is_active' => ($status === 1 && now()->between($term1Start, $term1End)),
-                ]);
-
-                // إنشاء الفصل الثاني
-                AcademicTerm::firstOrCreate([
-                    'academic_year_id' => $academicYear->id,
-                    'name' => 'الفصل الدراسي الثاني',
-                ], [
-                    'start_date' => $term2Start,
-                    'end_date' => $term2End,
-                    'is_active' => ($status === 1 && now()->between($term2Start, $term2End)),
-                ]);
-            }
-
-            $this->command->info('3 Academic Years with Terms created (1 Archived, 1 Active, 1 Upcoming).');
+            $this->command->info('Academic Year and Terms created (1 Active year with 2 terms).');
         });
     }
 }

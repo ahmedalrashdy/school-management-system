@@ -18,8 +18,8 @@ class TeachersSeeder extends Seeder
     public function run(): void
     {
         DB::transaction(function () {
-            // 1. إنشاء 50 مدرس
-            $teachersCount = 50;
+            // 1. إنشاء عدد ثابت من المدرسين
+            $teachersCount = 20;
             $existingTeachersCount = Teacher::count();
 
             if ($existingTeachersCount < $teachersCount) {
@@ -53,6 +53,8 @@ class TeachersSeeder extends Seeder
             $this->command->info("بدء تعيين المدرسين على المناهج الدراسية لـ {$sections->count()} شعبة...");
 
             $assignmentsCreated = 0;
+            $teacherIndex = 0;
+            $teachersCount = $teachers->count();
 
             // 4. لكل شعبة، تعيين مدرسين للمواد
             foreach ($sections as $section) {
@@ -77,7 +79,7 @@ class TeachersSeeder extends Seeder
                     continue;
                 }
 
-                // لكل مادة في المنهج
+                // لكل مادة في المنهج (توزيع دائري ثابت للمدرسين)
                 foreach ($curriculumSubjects as $curriculumSubject) {
                     // التحقق من وجود تعيين مسبق
                     $existingAssignment = TeacherAssignment::where('curriculum_subject_id', $curriculumSubject->id)
@@ -88,19 +90,13 @@ class TeachersSeeder extends Seeder
                         continue; // يوجد تعيين مسبق
                     }
 
-                    // البحث عن مدرس متاح (لم يدرس أكثر من 4 مواد في نفس العام الدراسي)
-                    $availableTeacher = $this->findAvailableTeacher($teachers, $section->academic_year_id);
-
-                    if (! $availableTeacher) {
-                        $this->command->warn("لا يوجد مدرس متاح للشعبة {$section->id} - المادة {$curriculumSubject->id} (جميع المدرسين لديهم 4 مواد في هذا العام)");
-
-                        continue;
-                    }
+                    $teacher = $teachers[$teacherIndex % $teachersCount];
+                    $teacherIndex++;
 
                     // إنشاء التعيين
                     TeacherAssignment::create([
                         'curriculum_subject_id' => $curriculumSubject->id,
-                        'teacher_id' => $availableTeacher->id,
+                        'teacher_id' => $teacher->id,
                         'section_id' => $section->id,
                     ]);
 
@@ -116,30 +112,5 @@ class TeachersSeeder extends Seeder
         });
     }
 
-    /**
-     * البحث عن مدرس متاح (لم يدرس أكثر من 4 مواد في نفس العام الدراسي).
-     */
-    protected function findAvailableTeacher($teachers, int $academicYearId): ?Teacher
-    {
-        // ترتيب المدرسين عشوائياً لضمان التوزيع العادل
-        $shuffledTeachers = $teachers->shuffle();
-
-        foreach ($shuffledTeachers as $teacher) {
-            // حساب عدد المواد التي يدرسها المدرس في هذا العام الدراسي
-            // استخدام join مباشرة لتحسين الأداء
-            $subjectsCount = DB::table('teacher_assignments')
-                ->join('curriculum_subject', 'teacher_assignments.curriculum_subject_id', '=', 'curriculum_subject.id')
-                ->join('curriculums', 'curriculum_subject.curriculum_id', '=', 'curriculums.id')
-                ->where('teacher_assignments.teacher_id', $teacher->id)
-                ->where('curriculums.academic_year_id', $academicYearId)
-                ->count();
-
-            // إذا كان المدرس يدرس أقل من 4 مواد، يمكن تعيينه
-            if ($subjectsCount < 5) {
-                return $teacher;
-            }
-        }
-
-        return null;
-    }
+    // لا حاجة لمنطق التحقق من السعة هنا لأننا نستخدم توزيعاً ثابتاً.
 }

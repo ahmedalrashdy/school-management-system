@@ -28,7 +28,12 @@ class PermissionSeeder extends Seeder
             );
         }
 
-        $permenentRoles = [['name' => 'مدرس', 'guard_name' => 'web'], ['name' => 'طالب', 'guard_name' => 'web'], ['name' => 'ولي أمر', 'guard_name' => 'web'], ['name' => 'موظف', 'guard_name' => 'web']];
-        Role::upsert($permenentRoles, ['name', 'web']);
+        $permenentRoles = [
+            ['name' => 'مدرس', 'guard_name' => 'web'],
+            ['name' => 'طالب', 'guard_name' => 'web'],
+            ['name' => 'ولي أمر', 'guard_name' => 'web'],
+            ['name' => 'موظف', 'guard_name' => 'web'],
+        ];
+        Role::upsert($permenentRoles, ['name', 'guard_name']);
     }
 }

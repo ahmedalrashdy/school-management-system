@@ -7,6 +7,8 @@ use App\Enums\AttendanceStatusEnum;
 use App\Enums\DayOfWeekEnum;
 use App\Enums\DayPartEnum;
 use App\Enums\SchoolDayType;
+use App\Models\AcademicTerm;
+use App\Models\AcademicYear;
 use App\Models\Attendance;
 use App\Models\AttendanceSheet;
 use App\Models\SchoolDay;
@@ -25,9 +27,8 @@ class AttendancesSeeder extends Seeder
     public function run(): void
     {
         DB::transaction(function () {
-            // جلب أول مستخدم (للاستخدام في taken_by و updated_by)
             $systemUser = User::first();
-            if (! $systemUser) {
+            if (!$systemUser) {
                 $this->command->error('لا يوجد مستخدمين في النظام. يرجى إنشاء مستخدم أولاً.');
 
                 return;
@@ -39,8 +40,21 @@ class AttendancesSeeder extends Seeder
 
             $this->command->info("نمط التحضير: {$attendanceMode->label()}");
 
-            // جلب جميع الأيام الدراسية (غير العطلة)
+            $activeYear = AcademicYear::active()->first();
+            $activeTerm = $activeYear
+                ? AcademicTerm::where('academic_year_id', $activeYear->id)->where('is_active', true)->first()
+                : null;
+
+            if (! $activeYear || ! $activeTerm) {
+                $this->command->error('لا توجد سنة نشطة أو ترم نشط. يرجى تشغيل SchoolBasicSeeder أولاً.');
+
+                return;
+            }
+
+            // جلب أيام الترم النشط فقط
             $schoolDays = SchoolDay::where('status', SchoolDayType::SchoolDay->value)
+                ->where('academic_year_id', $activeYear->id)
+                ->where('academic_term_id', $activeTerm->id)
                 ->with(['academicYear', 'academicTerm'])
                 ->orderBy('date', 'asc')
                 ->get();
@@ -61,9 +75,12 @@ class AttendancesSeeder extends Seeder
                 // جلب جميع الشعب في نفس السنة والترم
                 $sections = Section::where('academic_year_id', $schoolDay->academic_year_id)
                     ->where('academic_term_id', $schoolDay->academic_term_id)
-                    ->with(['students', 'timetables' => function ($query) {
-                        $query->where('is_active', true)->with('slots');
-                    }])
+                    ->with([
+                        'students',
+                        'timetables' => function ($query) {
+                            $query->where('is_active', true)->with('slots');
+                        }
+                    ])
                     ->get();
 
                 if ($sections->isEmpty()) {
@@ -89,14 +106,14 @@ class AttendancesSeeder extends Seeder
                             }
 
                             // تحديد حالة الحضور بناءً على الاحتمالات
-                            $status = $this->getRandomAttendanceStatus();
+                            $status = $this->getDeterministicAttendanceStatus($student->id, $schoolDay->id);
 
                             Attendance::create([
                                 'attendance_sheet_id' => $sheet->id,
                                 'student_id' => $student->id,
                                 'status' => $status,
                                 'notes' => $this->getRandomNotes($status),
-                                'modified_by' => 1, // افتراضياً المستخدم الأول
+                                'modified_by' => $systemUser->id,
                             ]);
 
                             $attendancesCreated++;
@@ -157,7 +174,7 @@ class AttendancesSeeder extends Seeder
         $sheets = [];
         $timetable = $section->activeTimetable();
 
-        if (! $timetable) {
+        if (!$timetable) {
             return $sheets;
         }
 
@@ -265,27 +282,16 @@ class AttendancesSeeder extends Seeder
     /**
      * تحديد حالة الحضور بناءً على الاحتمالات.
      */
-    protected function getRandomAttendanceStatus(): AttendanceStatusEnum
+    protected function getDeterministicAttendanceStatus(int $studentId, int $schoolDayId): AttendanceStatusEnum
     {
-        $random = rand(1, 100);
+        $selector = ($studentId + $schoolDayId) % 20;
 
-        // الحضور: 70%
-        if ($random <= 70) {
-            return AttendanceStatusEnum::Present;
-        }
-
-        // الغياب: 15%
-        if ($random <= 85) {
-            return AttendanceStatusEnum::Absent;
-        }
-
-        // الإعتذار: 10%
-        if ($random <= 95) {
-            return AttendanceStatusEnum::Excused;
-        }
-
-        // التأخير: 5%
-        return AttendanceStatusEnum::Late;
+        return match (true) {
+            $selector < 14 => AttendanceStatusEnum::Present, // 70%
+            $selector < 17 => AttendanceStatusEnum::Absent,  // 15%
+            $selector < 19 => AttendanceStatusEnum::Excused, // 10%
+            default => AttendanceStatusEnum::Late,           // 5%
+        };
     }
 
     /**
@@ -295,31 +301,23 @@ class AttendancesSeeder extends Seeder
     {
         $notes = [
             AttendanceStatusEnum::Present->value => [
-                null,
-                null,
-                null,
                 'حضور ممتاز',
             ],
             AttendanceStatusEnum::Absent->value => [
-                null,
                 'غياب بدون عذر',
                 'لم يحضر',
             ],
             AttendanceStatusEnum::Excused->value => [
-                null,
                 'إعتذار مسبق',
                 'إعتذار ولي الأمر',
             ],
             AttendanceStatusEnum::Late->value => [
-                null,
                 'تأخير 10 دقائق',
                 'تأخير 15 دقيقة',
             ],
         ];
 
         $statusNotes = $notes[$status->value] ?? [null];
-        $randomNote = $statusNotes[array_rand($statusNotes)];
-
-        return $randomNote;
+        return $statusNotes[0] ?? null;
     }
 }

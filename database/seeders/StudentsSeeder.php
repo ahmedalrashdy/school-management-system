@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Enums\AcademicYearStatus;
 use App\Models\AcademicTerm;
 use App\Models\AcademicYear;
 use App\Models\Enrollment;
@@ -20,13 +19,12 @@ class StudentsSeeder extends Seeder
     public function run(): void
     {
         DB::transaction(function () {
-            // جلب البيانات الأساسية
-            $academicYears = AcademicYear::orderBy('start_date', 'asc')->get();
+            // جلب البيانات الأساسية (سنة واحدة نشطة فقط)
+            $academicYear = AcademicYear::active()->first();
             $grades = Grade::orderBy('sort_order', 'asc')->get();
 
-            if ($academicYears->count() < 3) {
-                $this->command->error('يجب أن يكون هناك على الأقل 3 سنوات دراسية (1 ماضية + 1 نشطة + 1 قادمة).');
-                $this->command->info('يرجى تشغيل SchoolBasicSeeder أولاً.');
+            if (! $academicYear) {
+                $this->command->error('لا توجد سنة دراسية نشطة. يرجى تشغيل SchoolBasicSeeder أولاً.');
 
                 return;
             }
@@ -37,130 +35,52 @@ class StudentsSeeder extends Seeder
                 return;
             }
 
-            // عدد الطلاب المراد إنشاؤهم (القيمة الافتراضية: 50)
-            // يمكن تغييرها من خلال تعديل القيمة هنا أو تمريرها كمتغير بيئة
-            $studentsCount = 100;
+            $terms = AcademicTerm::where('academic_year_id', $academicYear->id)
+                ->orderBy('start_date')
+                ->get();
+            if ($terms->isEmpty()) {
+                $this->command->error('لا توجد أترام دراسية للسنة النشطة. يرجى تشغيل SchoolBasicSeeder أولاً.');
 
-            if ($studentsCount <= 0) {
-                $studentsCount = 50;
+                return;
             }
 
-            $this->command->info("بدء إنشاء {$studentsCount} طالب...");
+            // عدد ثابت لكل صف لتجنب العشوائية
+            $studentsPerGrade = 4;
+            $studentsCount = $grades->count() * $studentsPerGrade;
+
+            $this->command->info("بدء إنشاء {$studentsCount} طالب لسنة دراسية واحدة...");
 
             $studentsCreated = 0;
             $enrollmentsCreated = 0;
             $sectionStudentsCreated = 0;
 
-            // الحصول على السنوات: ماضية، نشطة، قادمة
-            $archivedYear = $academicYears->where('status', AcademicYearStatus::Archived)->first();
-            $activeYear = $academicYears->where('status', AcademicYearStatus::Active)->first();
-            $upcomingYear = $academicYears->where('status', AcademicYearStatus::Upcoming)->first();
+            // إنشاء الطلاب وتوزيعهم على الصفوف بشكل ثابت
+            foreach ($grades as $grade) {
+                for ($i = 0; $i < $studentsPerGrade; $i++) {
+                    $student = Student::factory()->create();
+                    $studentsCreated++;
 
-            if (!$archivedYear) {
-                $this->command->error('لا توجد سنة دراسية مؤرشفة. يرجى التأكد من وجود سنة بصفة Archived.');
+                    // Enrollment للسنة النشطة فقط
+                    Enrollment::firstOrCreate([
+                        'student_id' => $student->id,
+                        'academic_year_id' => $academicYear->id,
+                    ], [
+                        'grade_id' => $grade->id,
+                    ]);
+                    $enrollmentsCreated++;
 
-                return;
-            }
+                    // ربط الطالب بالشعبة لكل ترم
+                    foreach ($terms as $term) {
+                        $section = Section::where('academic_year_id', $academicYear->id)
+                            ->where('grade_id', $grade->id)
+                            ->where('academic_term_id', $term->id)
+                            ->first();
 
-            if (!$activeYear) {
-                $this->command->error('لا توجد سنة دراسية نشطة. يرجى التأكد من وجود سنة بصفة Active.');
-
-                return;
-            }
-
-            if (!$upcomingYear) {
-                $this->command->error('لا توجد سنة دراسية قادمة. يرجى التأكد من وجود سنة بصفة Upcoming.');
-
-                return;
-            }
-
-            // إنشاء الطلاب
-            for ($i = 0; $i < $studentsCount; $i++) {
-                // إنشاء الطالب
-                $student = Student::factory()->create();
-                $studentsCreated++;
-
-                // تحديد الصفوف التي سيدرس فيها الطالب (3 صفوف متتالية)
-                // الصف الأول: في السنة الماضية (Archived)
-                // الصف الثاني: في السنة النشطة (Active)
-                // الصف الثالث: في السنة القادمة (Upcoming)
-                $maxStartingIndex = max(0, $grades->count() - 3);
-                $startingGradeIndex = rand(0, $maxStartingIndex);
-                $grade1 = $grades->get($startingGradeIndex); // السنة الماضية
-                $grade2 = $grades->get($startingGradeIndex + 1); // السنة النشطة
-                $grade3 = $grades->get($startingGradeIndex + 2); // السنة القادمة
-
-                // 1. إنشاء enrollment للسنة الماضية (Archived)
-                Enrollment::firstOrCreate([
-                    'student_id' => $student->id,
-                    'academic_year_id' => $archivedYear->id,
-                ], [
-                    'grade_id' => $grade1->id,
-                ]);
-                $enrollmentsCreated++;
-
-                // تسجيل الطالب في شعب السنة الماضية لكل ترم
-                $archivedTerms = AcademicTerm::where('academic_year_id', $archivedYear->id)->get();
-                foreach ($archivedTerms as $academicTerm) {
-                    $section = Section::where('academic_year_id', $archivedYear->id)
-                        ->where('grade_id', $grade1->id)
-                        ->where('academic_term_id', $academicTerm->id)
-                        ->first();
-
-                    if ($section) {
-                        $student->sections()->syncWithoutDetaching([$section->id]);
-                        $sectionStudentsCreated++;
+                        if ($section) {
+                            $student->sections()->syncWithoutDetaching([$section->id]);
+                            $sectionStudentsCreated++;
+                        }
                     }
-                }
-
-                // 2. إنشاء enrollment للسنة النشطة (Active)
-                Enrollment::firstOrCreate([
-                    'student_id' => $student->id,
-                    'academic_year_id' => $activeYear->id,
-                ], [
-                    'grade_id' => $grade2->id,
-                ]);
-                $enrollmentsCreated++;
-
-                // تسجيل الطالب في شعب السنة النشطة لكل ترم
-                $activeTerms = AcademicTerm::where('academic_year_id', $activeYear->id)->get();
-                foreach ($activeTerms as $academicTerm) {
-                    $section = Section::where('academic_year_id', $activeYear->id)
-                        ->where('grade_id', $grade2->id)
-                        ->where('academic_term_id', $academicTerm->id)
-                        ->first();
-
-                    if ($section) {
-                        $student->sections()->syncWithoutDetaching([$section->id]);
-                        $sectionStudentsCreated++;
-                    }
-                }
-
-                // 3. إنشاء enrollment للسنة القادمة (Upcoming)
-                Enrollment::firstOrCreate([
-                    'student_id' => $student->id,
-                    'academic_year_id' => $upcomingYear->id,
-                ], [
-                    'grade_id' => $grade3->id,
-                ]);
-                $enrollmentsCreated++;
-
-                // تسجيل الطالب في شعب السنة القادمة لكل ترم
-                $upcomingTerms = AcademicTerm::where('academic_year_id', $upcomingYear->id)->get();
-                foreach ($upcomingTerms as $academicTerm) {
-                    $section = Section::where('academic_year_id', $upcomingYear->id)
-                        ->where('grade_id', $grade3->id)
-                        ->where('academic_term_id', $academicTerm->id)
-                        ->first();
-
-                    if ($section) {
-                        $student->sections()->syncWithoutDetaching([$section->id]);
-                        $sectionStudentsCreated++;
-                    }
-                }
-
-                if (($i + 1) % 10 == 0) {
-                    $this->command->info('تم إنشاء ' . ($i + 1) . ' طالب...');
                 }
             }
 

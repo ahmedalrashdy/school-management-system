@@ -60,8 +60,8 @@ class MarksSeeder extends Seeder
                             continue; // يوجد درجة مسبقة
                         }
 
-                        // إنشاء درجة عشوائية
-                        $marksObtained = $this->getRandomMark($exam->max_marks);
+                        // إنشاء درجة ثابتة بناءً على الطالب والامتحان
+                        $marksObtained = $this->getDeterministicMark($exam->max_marks, $student->id, $exam->id);
 
                         Mark::create([
                             'student_id' => $student->id,
@@ -90,22 +90,16 @@ class MarksSeeder extends Seeder
      * الحصول على درجة عشوائية بناءً على الدرجة القصوى.
      * التوزيع: معظم الطلاب يحصلون على درجات جيدة (60-100% من max_marks)
      */
-    protected function getRandomMark(int $maxMarks): float
+    protected function getDeterministicMark(int $maxMarks, int $studentId, int $examId): float
     {
-        $random = rand(1, 100);
-
-        // 70% من الطلاب يحصلون على درجات جيدة (60-100%)
-        if ($random <= 70) {
-            $percentage = rand(60, 100) / 100;
-        }
-        // 20% يحصلون على درجات متوسطة (40-60%)
-        elseif ($random <= 90) {
-            $percentage = rand(40, 60) / 100;
-        }
-        // 10% يحصلون على درجات ضعيفة (0-40%)
-        else {
-            $percentage = rand(0, 40) / 100;
-        }
+        $selector = ($studentId + $examId) % 5;
+        $percentage = match ($selector) {
+            0 => 0.95,
+            1 => 0.85,
+            2 => 0.75,
+            3 => 0.65,
+            default => 0.55,
+        };
 
         $mark = $maxMarks * $percentage;
 
@@ -125,8 +119,6 @@ class MarksSeeder extends Seeder
             [
                 'range' => [90, 100],
                 'options' => [
-                    null,
-                    null,
                     'أداء ممتاز',
                     'ممتاز جداً',
                 ],
@@ -135,8 +127,6 @@ class MarksSeeder extends Seeder
             [
                 'range' => [80, 90],
                 'options' => [
-                    null,
-                    null,
                     'أداء جيد جداً',
                     'مستوى جيد',
                 ],
@@ -145,8 +135,6 @@ class MarksSeeder extends Seeder
             [
                 'range' => [70, 80],
                 'options' => [
-                    null,
-                    null,
                     'أداء جيد',
                 ],
             ],
@@ -154,7 +142,6 @@ class MarksSeeder extends Seeder
             [
                 'range' => [60, 70],
                 'options' => [
-                    null,
                     'يحتاج تحسين',
                 ],
             ],
@@ -162,7 +149,6 @@ class MarksSeeder extends Seeder
             [
                 'range' => [0, 60],
                 'options' => [
-                    null,
                     'يحتاج متابعة',
                     'يحتاج تحسين',
                 ],
@@ -171,9 +157,7 @@ class MarksSeeder extends Seeder
 
         foreach ($notes as $noteGroup) {
             if ($percentage >= $noteGroup['range'][0] && $percentage <= $noteGroup['range'][1]) {
-                $randomNote = $noteGroup['options'][array_rand($noteGroup['options'])];
-
-                return $randomNote;
+                return $noteGroup['options'][0] ?? null;
             }
         }
 

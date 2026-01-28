@@ -15,11 +15,21 @@ class SchoolDaysSeeder extends Seeder
     public function run(): void
     {
         DB::transaction(function () {
-            // جلب جميع الأترام الدراسية
-            $academicTerms = AcademicTerm::with('academicYear')->get();
+            // جلب الأترام الدراسية للسنة النشطة فقط
+            $activeYear = \App\Models\AcademicYear::active()->first();
+            if (! $activeYear) {
+                $this->command->error('لا توجد سنة دراسية نشطة. يرجى تشغيل SchoolBasicSeeder أولاً.');
+
+                return;
+            }
+
+            $academicTerms = AcademicTerm::with('academicYear')
+                ->where('academic_year_id', $activeYear->id)
+                ->orderBy('start_date')
+                ->get();
 
             if ($academicTerms->isEmpty()) {
-                $this->command->error('لا توجد أترام دراسية. يرجى تشغيل SchoolBasicSeeder أولاً.');
+                $this->command->error('لا توجد أترام دراسية للسنة النشطة. يرجى تشغيل SchoolBasicSeeder أولاً.');
 
                 return;
             }
@@ -34,7 +44,12 @@ class SchoolDaysSeeder extends Seeder
                 // حساب عدد الأيام التي سيتم إنشاؤها
                 $existingDaysCount = $term->schoolDays()->count();
 
-                // إنشاء الأيام الدراسية للترم
+                // إنشاء الأيام الدراسية للترم (تخطي الترمات غير المرتبطة بسنة صحيحة)
+                if (! $term->academicYear) {
+                    $this->command->warn("تم تخطي ترم بدون سنة دراسية صالحة (ID: {$term->id})");
+                    continue;
+                }
+
                 $schoolDayService->generateDaysForTerm($term);
 
                 // حساب عدد الأيام الجديدة

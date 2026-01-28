@@ -3,9 +3,7 @@
 use App\Http\Controllers\Common\AutocompleteController;
 use App\Http\Controllers\Common\NotificationController;
 use App\Models\User;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
-use Spatie\Activitylog\Models\Activity;
 
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::prefix('notifications')->name('notifications.')->group(function () {
@@ -35,8 +33,7 @@ Route::get('test2', function () {
     return 'done';
 });
 Route::get('test', function () {
-
-    return view("test");
+    Cache::clear();
 });
 
 require __DIR__ . '/auth.php';

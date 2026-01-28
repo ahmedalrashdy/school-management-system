@@ -54,7 +54,7 @@ class TimetableSlotsSeeder extends Seeder
                     continue;
                 }
 
-                // إنشاء الحصص الدراسية
+                // إنشاء الحصص الدراسية بشكل ثابت (بدون عشوائية)
                 $slotsForTimetable = $this->buildTimetableSlots(
                     $timetable,
                     $teacherAssignments,
@@ -84,9 +84,7 @@ class TimetableSlotsSeeder extends Seeder
         int $durationMinutes
     ): array {
         $slots = [];
-        $teacherBusySlots = []; // تتبع الحصص المشغولة لكل مدرس [teacher_id => [day => [periods]]]
-
-        // إنشاء قائمة بجميع الحصص المتاحة
+        // إنشاء قائمة مرتبة بجميع الحصص المتاحة
         $availableSlots = [];
         foreach (DayOfWeekEnum::cases() as $day) {
             $dayKey = $day->key();
@@ -99,119 +97,45 @@ class TimetableSlotsSeeder extends Seeder
             }
         }
 
-        // خلط الحصص المتاحة عشوائياً لضمان توزيع أفضل
-        shuffle($availableSlots);
+        $assignments = $teacherAssignments->values();
+        $assignmentsCount = $assignments->count();
+        if ($assignmentsCount === 0) {
+            return $slots;
+        }
 
-        // توزيع تعيينات المدرسين على الحصص المتاحة
+        // توزيع تعيينات المدرسين بشكل دائري ثابت
         $assignmentIndex = 0;
-        $assignmentsCount = $teacherAssignments->count();
-
         foreach ($availableSlots as $slotData) {
             $day = $slotData['day'];
             $period = $slotData['period'];
 
-            // التحقق من أن الحصة غير موجودة مسبقاً
             $existingSlot = TimetableSlot::where('timetable_id', $timetable->id)
                 ->where('day_of_week', $day->value)
                 ->where('period_number', $period)
                 ->first();
 
             if ($existingSlot) {
-                continue; // الحصة موجودة مسبقاً
+                continue;
             }
 
-            // البحث عن تعيين مدرس متاح لهذا الوقت
-            $assignmentPlaced = false;
+            $assignment = $assignments[$assignmentIndex % $assignmentsCount];
+            $assignmentIndex++;
 
-            // محاولة إيجاد مدرس متاح من جميع التعيينات
-            foreach ($teacherAssignments as $assignment) {
-                $teacherId = $assignment->teacher_id;
+            TimetableSlot::create([
+                'timetable_id' => $timetable->id,
+                'teacher_assignment_id' => $assignment->id,
+                'day_of_week' => $day->value,
+                'period_number' => $period,
+                'duration_minutes' => $durationMinutes,
+            ]);
 
-                // التحقق من أن المدرس غير مشغول في هذا الوقت
-                if (! $this->isTeacherBusy($teacherId, $day->value, $period, $teacherBusySlots)) {
-                    // إنشاء الحصة
-                    TimetableSlot::create([
-                        'timetable_id' => $timetable->id,
-                        'teacher_assignment_id' => $assignment->id,
-                        'day_of_week' => $day->value,
-                        'period_number' => $period,
-                        'duration_minutes' => $durationMinutes,
-                    ]);
-
-                    // تسجيل الحصة كـ مشغولة للمدرس
-                    if (! isset($teacherBusySlots[$teacherId])) {
-                        $teacherBusySlots[$teacherId] = [];
-                    }
-                    if (! isset($teacherBusySlots[$teacherId][$day->value])) {
-                        $teacherBusySlots[$teacherId][$day->value] = [];
-                    }
-                    $teacherBusySlots[$teacherId][$day->value][] = $period;
-
-                    $assignmentPlaced = true;
-                    $slots[] = [
-                        'day' => $day->value,
-                        'period' => $period,
-                        'assignment' => $assignment->id,
-                    ];
-                    break; // وجدنا مدرس متاح، نخرج من الحلقة
-                }
-            }
-
-            if (! $assignmentPlaced) {
-                // إذا لم يتم العثور على مدرس متاح، نستخدم أول تعيين متاح
-                // (قد يكون المدرس مشغولاً في جداول أخرى، لكن سنملأ الحصة)
-                $assignment = $teacherAssignments[0];
-
-                TimetableSlot::create([
-                    'timetable_id' => $timetable->id,
-                    'teacher_assignment_id' => $assignment->id,
-                    'day_of_week' => $day->value,
-                    'period_number' => $period,
-                    'duration_minutes' => $durationMinutes,
-                ]);
-
-                // تسجيل الحصة محلياً (حتى لو كان المدرس مشغولاً في جداول أخرى)
-                if (! isset($teacherBusySlots[$assignment->teacher_id])) {
-                    $teacherBusySlots[$assignment->teacher_id] = [];
-                }
-                if (! isset($teacherBusySlots[$assignment->teacher_id][$day->value])) {
-                    $teacherBusySlots[$assignment->teacher_id][$day->value] = [];
-                }
-                $teacherBusySlots[$assignment->teacher_id][$day->value][] = $period;
-
-                $slots[] = [
-                    'day' => $day->value,
-                    'period' => $period,
-                    'assignment' => $assignment->id,
-                ];
-
-                $this->command->warn("تم تعيين مدرس مشغول في جداول أخرى للحصة (الجدول: {$timetable->id}, اليوم: {$day->value}, الحصة: {$period})");
-            }
+            $slots[] = [
+                'day' => $day->value,
+                'period' => $period,
+                'assignment' => $assignment->id,
+            ];
         }
 
         return $slots;
-    }
-
-    /**
-     * التحقق من أن المدرس مشغول في وقت معين.
-     */
-    protected function isTeacherBusy(int $teacherId, int $dayOfWeek, int $periodNumber, array $teacherBusySlots): bool
-    {
-        // التحقق من الحصص المحلية (في نفس الجدول)
-        if (isset($teacherBusySlots[$teacherId][$dayOfWeek])) {
-            if (in_array($periodNumber, $teacherBusySlots[$teacherId][$dayOfWeek])) {
-                return true;
-            }
-        }
-
-        // التحقق من الحصص في جداول أخرى (نفس المدرس، نفس اليوم، نفس رقم الحصة)
-        $busyInOtherTimetables = DB::table('timetable_slots')
-            ->join('teacher_assignments', 'timetable_slots.teacher_assignment_id', '=', 'teacher_assignments.id')
-            ->where('teacher_assignments.teacher_id', $teacherId)
-            ->where('timetable_slots.day_of_week', $dayOfWeek)
-            ->where('timetable_slots.period_number', $periodNumber)
-            ->exists();
-
-        return $busyInOtherTimetables;
     }
 }

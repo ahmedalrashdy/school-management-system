@@ -60,6 +60,7 @@ class User extends Authenticatable
         'password',
         'is_active',
         'is_admin',
+        'is_guest',
         'reset_password_required',
         'avatar',
     ];
@@ -101,6 +102,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'is_active' => 'boolean',
             'is_admin' => 'boolean',
+            'is_guest' => 'boolean',
             'reset_password_required' => 'boolean',
             'gender' => GenderEnum::class,
             'password' => 'hashed',

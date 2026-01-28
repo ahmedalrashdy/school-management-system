@@ -40,6 +40,14 @@ class ExamsAndGradingRulesSeeder extends Seeder
                 return;
             }
 
+            $finalExamType = $examTypes->firstWhere('name', 'اختبار نهاية الفصل') ?? $examTypes->last();
+            $courseworkExamTypes = $examTypes
+                ->whereIn('name', ['اختبار شهري', 'واجبات منزلية', 'مشاركة صفية'])
+                ->values();
+            if ($courseworkExamTypes->isEmpty()) {
+                $courseworkExamTypes = $examTypes->filter(fn ($type) => $type->id !== $finalExamType->id)->values();
+            }
+
             $examsCreated = 0;
             $gradingRulesCreated = 0;
             $sectionsProcessed = 0;
@@ -60,7 +68,7 @@ class ExamsAndGradingRulesSeeder extends Seeder
 
                 foreach ($curriculumSubjects as $curriculumSubject) {
                     // 1. إنشاء امتحان نهائي
-                    $finalExam = $this->createFinalExam($section, $curriculumSubject, $examTypes);
+                    $finalExam = $this->createFinalExam($section, $curriculumSubject, $finalExamType);
 
                     if (! $finalExam) {
                         continue;
@@ -69,7 +77,7 @@ class ExamsAndGradingRulesSeeder extends Seeder
                     $examsCreated++;
 
                     // 2. إنشاء 2-3 امتحانات أخرى (أعمال الفصل)
-                    $courseworkExams = $this->createCourseworkExams($section, $curriculumSubject, $examTypes);
+                    $courseworkExams = $this->createCourseworkExams($section, $curriculumSubject, $courseworkExamTypes);
                     $examsCreated += count($courseworkExams);
 
                     // 3. إنشاء قاعدة احتساب
@@ -94,7 +102,7 @@ class ExamsAndGradingRulesSeeder extends Seeder
     /**
      * إنشاء امتحان نهائي.
      */
-    protected function createFinalExam(Section $section, CurriculumSubject $curriculumSubject, $examTypes): ?Exam
+    protected function createFinalExam(Section $section, CurriculumSubject $curriculumSubject, ExamType $finalExamType): ?Exam
     {
         // التحقق من وجود امتحان نهائي مسبق
         $existingFinal = Exam::where('section_id', $section->id)
@@ -106,15 +114,12 @@ class ExamsAndGradingRulesSeeder extends Seeder
             return $existingFinal;
         }
 
-        // اختيار نوع امتحان نهائي (آخر نوع في القائمة عادة)
-        $finalExamType = $examTypes->last() ?? $examTypes->first();
-
-        // اختيار الدرجة القصوى للنهائي (50 أو 70 أو 60)
-        $finalMaxMarks = [50, 70, 60][rand(0, 2)];
+        // الدرجة القصوى للنهائي (ثابتة لثبات البيانات)
+        $finalMaxMarks = 30;
 
         // تحديد تاريخ الامتحان (في نهاية الترم)
         $termEndDate = Carbon::parse($section->academicTerm->end_date);
-        $examDate = $termEndDate->copy()->subDays(rand(1, 7)); // قبل نهاية الترم بـ 1-7 أيام
+        $examDate = $termEndDate->copy()->subDays(3); // قبل نهاية الترم بثلاثة أيام
 
         $exam = Exam::create([
             'academic_year_id' => $section->academic_year_id,
@@ -133,18 +138,12 @@ class ExamsAndGradingRulesSeeder extends Seeder
     /**
      * إنشاء امتحانات أعمال الفصل.
      */
-    protected function createCourseworkExams(Section $section, CurriculumSubject $curriculumSubject, $examTypes): array
+    protected function createCourseworkExams(Section $section, CurriculumSubject $curriculumSubject, $courseworkExamTypes): array
     {
         $exams = [];
 
-        // عدد الامتحانات (2-3)
-        $examsCount = rand(2, 3);
-
-        // اختيار أنواع امتحانات عشوائية (غير النهائي)
-        $courseworkExamTypes = $examTypes->where('id', '!=', $examTypes->last()?->id)->shuffle();
-
-        // توزيع الأوزان (يجب أن يكون مجموعها 100%)
-        $weights = $this->distributeWeights($examsCount);
+        // عدد الامتحانات ثابت (2)
+        $examsCount = min(2, $courseworkExamTypes->count());
 
         // تاريخ بداية الترم
         $termStartDate = Carbon::parse($section->academicTerm->start_date);
@@ -153,10 +152,15 @@ class ExamsAndGradingRulesSeeder extends Seeder
 
         for ($i = 0; $i < $examsCount; $i++) {
             // التحقق من وجود امتحان مسبق
+            $examType = $courseworkExamTypes->get($i);
+            if (! $examType) {
+                break;
+            }
+
             $existingExam = Exam::where('section_id', $section->id)
                 ->where('curriculum_subject_id', $curriculumSubject->id)
                 ->where('is_final', false)
-                ->where('exam_type_id', $courseworkExamTypes->get($i % $courseworkExamTypes->count())?->id)
+                ->where('exam_type_id', $examType->id)
                 ->first();
 
             if ($existingExam) {
@@ -165,14 +169,11 @@ class ExamsAndGradingRulesSeeder extends Seeder
                 continue;
             }
 
-            // اختيار نوع امتحان
-            $examType = $courseworkExamTypes->get($i % $courseworkExamTypes->count()) ?? $courseworkExamTypes->first();
-
-            // الدرجة القصوى (من مضاعفات 5)
-            $maxMarks = $this->getRandomMultipleOfFive(10, 50); // من 10 إلى 50
+            // الدرجة القصوى ثابتة لكل امتحان أعمال فصل
+            $maxMarks = 10;
 
             // توزيع تواريخ الامتحانات على طول الترم
-            $progress = ($i + 1) / ($examsCount + 1); // توزيع متساوي
+            $progress = ($i + 1) / ($examsCount + 1);
             $examDate = $termStartDate->copy()->addDays((int) ($termDuration * $progress));
 
             $exam = Exam::create([
@@ -190,49 +191,6 @@ class ExamsAndGradingRulesSeeder extends Seeder
         }
 
         return $exams;
-    }
-
-    /**
-     * توزيع الأوزان على الامتحانات (مجموعها 100%).
-     */
-    protected function distributeWeights(int $count): array
-    {
-        $weights = [];
-
-        if ($count == 2) {
-            // توزيع متساوي أو 60/40
-            $w1 = rand(40, 60);
-            $w2 = 100 - $w1;
-            $weights = [$w1, $w2];
-        } elseif ($count == 3) {
-            // توزيع متساوي تقريباً
-            $w1 = rand(25, 40);
-            $w2 = rand(25, 40);
-            $w3 = 100 - $w1 - $w2;
-            $weights = [$w1, $w2, $w3];
-        }
-
-        // التأكد من أن المجموع = 100
-        $total = array_sum($weights);
-        if ($total != 100) {
-            $diff = 100 - $total;
-            $weights[0] += $diff;
-        }
-
-        return $weights;
-    }
-
-    /**
-     * الحصول على قيمة عشوائية من مضاعفات 5.
-     */
-    protected function getRandomMultipleOfFive(int $min, int $max): int
-    {
-        $min = (int) ceil($min / 5) * 5;
-        $max = (int) floor($max / 5) * 5;
-
-        $random = rand($min / 5, $max / 5) * 5;
-
-        return $random;
     }
 
     /**
@@ -265,15 +223,17 @@ class ExamsAndGradingRulesSeeder extends Seeder
             'is_published' => false,
         ]);
 
-        // إنشاء GradingRuleItems للامتحانات الأخرى
-        $weights = $this->distributeWeights(count($courseworkExams));
-
-        foreach ($courseworkExams as $index => $exam) {
-            GradingRuleItem::create([
-                'grading_rule_id' => $gradingRule->id,
-                'exam_id' => $exam->id,
-                'weight' => $weights[$index] ?? (100 / count($courseworkExams)),
-            ]);
+        // إنشاء GradingRuleItems للامتحانات الأخرى (أوزان ثابتة)
+        $count = count($courseworkExams);
+        if ($count > 0) {
+            $weight = round(100 / $count, 2);
+            foreach ($courseworkExams as $exam) {
+                GradingRuleItem::create([
+                    'grading_rule_id' => $gradingRule->id,
+                    'exam_id' => $exam->id,
+                    'weight' => $weight,
+                ]);
+            }
         }
 
         return $gradingRule;

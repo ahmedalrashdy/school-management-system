@@ -30,61 +30,15 @@ class GuardiansSeeder extends Seeder
             $guardiansCreated = 0;
             $relationshipsCreated = 0;
 
-            // أنواع صلة القرابة الشائعة (الأب والأم أولاً)
-            $commonRelations = [
-                RelationToStudentEnum::Father,
-                RelationToStudentEnum::Mother,
-            ];
-
-            // أنواع صلة القرابة الإضافية
-            $additionalRelations = [
-                RelationToStudentEnum::Brother,
-                RelationToStudentEnum::Sister,
-                RelationToStudentEnum::Grandfather,
-                RelationToStudentEnum::Grandmother,
-                RelationToStudentEnum::Uncle,
-                RelationToStudentEnum::Aunt,
-                RelationToStudentEnum::MaternalUncle,
-                RelationToStudentEnum::MaternalAunt,
-                RelationToStudentEnum::Guardian,
-            ];
-
             foreach ($students as $student) {
-                // تحديد عدد أولياء الأمور لهذا الطالب (1-3)
-                $guardiansCount = rand(1, 3);
+                // ولي أمر واحد ثابت لكل طالب لتقليل العشوائية
+                $guardian = Guardian::factory()->create();
+                $guardiansCreated++;
 
-                // نبدأ بالأب والأم إذا كان العدد 2 أو أكثر
-                $relationsToUse = [];
-                if ($guardiansCount >= 2) {
-                    // إضافة الأب والأم
-                    $relationsToUse[] = RelationToStudentEnum::Father;
-                    $relationsToUse[] = RelationToStudentEnum::Mother;
-
-                    // إذا كان العدد 3، نضيف ولي أمر إضافي
-                    if ($guardiansCount === 3) {
-                        $relationsToUse[] = fake()->randomElement($additionalRelations);
-                    }
-                } else {
-                    // إذا كان العدد 1 فقط، نختار عشوائياً بين الأب والأم
-                    $relationsToUse[] = fake()->randomElement($commonRelations);
-                }
-
-                // إنشاء أولياء الأمور وربطهم بالطالب
-                foreach ($relationsToUse as $relation) {
-                    // إنشاء ولي الأمر
-                    $guardian = Guardian::factory()->create();
-                    $guardiansCreated++;
-
-                    // ربط ولي الأمر بالطالب
-                    $student->guardians()->attach($guardian->id, [
-                        'relation_to_student' => $relation->value,
-                    ]);
-                    $relationshipsCreated++;
-                }
-
-                if ($student->id % 100 == 0) {
-                    $this->command->info("تم معالجة {$student->id} طالب...");
-                }
+                $student->guardians()->attach($guardian->id, [
+                    'relation_to_student' => RelationToStudentEnum::Father->value,
+                ]);
+                $relationshipsCreated++;
             }
 
             $this->command->info("تم إنشاء {$guardiansCreated} ولي أمر.");

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\AcademicYearStatus;
 use App\Models\Section;
 use App\Models\Timetable;
 use App\Models\TimetableSetting;
@@ -55,11 +56,13 @@ class TimetablesSeeder extends Seeder
             foreach ($sections as $section) {
                 // إنشاء اسم للجدول الدراسي
                 $timetableName = "جدول {$section->grade->name} - شعبة {$section->name} - {$section->academicYear->name} - {$section->academicTerm->name}";
+                $isActive = $section->academicYear?->status === AcademicYearStatus::Active
+                    && (bool) $section->academicTerm?->is_active;
 
                 // إنشاء الجدول الدراسي (غير نشط افتراضياً)
                 Timetable::firstOrCreate([
                     'section_id' => $section->id,
-                    'is_active' => false, // افتراضياً غير نشط
+                    'is_active' => $isActive,
                 ], [
                     'name' => $timetableName,
                     'timetable_setting_id' => $timetableSetting->id,
