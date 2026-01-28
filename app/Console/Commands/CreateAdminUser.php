@@ -61,6 +61,7 @@ class CreateAdminUser extends Command
             'last_name' => $lastName,
             'email' => $email,
             'password' => $password,
+            'is_guest' => false,
         ], [
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],

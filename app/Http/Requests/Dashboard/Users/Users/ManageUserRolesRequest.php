@@ -37,10 +37,12 @@ class ManageUserRolesRequest extends FormRequest
     public function withValidator(Validator $validator)
     {
         $validator->after(function ($validator) {
-            $roles = Role::whereIn('id', $this->roles)->get();
-            if ($roles->count() !== count($this->roles)) {
-                $validator->errors()->add('roles', 'بعض الأدوار المختارة غير موجودة.');
-                return;
+            if ($this->roles) {
+                $roles = Role::whereIn('id', $this->roles)->get();
+                if ($roles?->count() !== count($this->roles)) {
+                    $validator->errors()->add('roles', 'بعض الأدوار المختارة غير موجودة.');
+                    return;
+                }
             }
         });
     }
