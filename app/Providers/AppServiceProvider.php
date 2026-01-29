@@ -50,7 +50,10 @@ class AppServiceProvider extends ServiceProvider
 
         $this->registerGuestWriteGuards();
 
-        if (class_exists(PermissionEnum::class)) {
+        if (class_exists(PermissionEnum::class)
+            && ! class_exists('Perm', false)
+            && ! enum_exists('Perm', false)
+        ) {
             class_alias(PermissionEnum::class, 'Perm');
         }
 
