@@ -252,7 +252,7 @@
                         class="relative rounded-3xl overflow-hidden shadow-2xl transform hover:scale-105 transition-transform duration-500">
                         <img
                             class="w-full h-[600px] object-cover"
-                            src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1200&q=80"
+                            src="https://images.pexels.com/photos/8793386/pexels-photo-8793386.jpeg"
                             alt="طلاب المدرسة"
                         >
                         <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
