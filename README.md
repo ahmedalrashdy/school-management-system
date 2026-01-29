@@ -68,12 +68,18 @@ This repository showcases a modular, service-oriented Laravel codebase (admin da
 
 ## Tech Stack
 
-- **Backend**: Laravel 12, PHP
-- **Frontend**: Blade, Livewire 3, Alpine.js 3, Tailwind CSS 4, Vite
-- **Auth**: Laravel Breeze
-- **Authorization**: Spatie Laravel Permission
-- **Testing**: Pest
-- **Tooling**: Laravel Pint, Laravel Telescope (optional)
+| Layer | Technologies |
+|-------|--------------|
+| **Runtime** | PHP 8.4+ |
+| **Backend** | Laravel 12, Livewire 3 |
+| **Frontend** | Blade, Alpine.js 3, Tailwind CSS 4, Vite 7 |
+| **Auth** | Laravel Breeze 2 |
+| **Authorization** | Spatie Laravel Permission 6 |
+| **Key packages** | Spatie Activity Log, Spatie PDF, Predis (Redis), Sushi |
+| **Build / assets** | Vite 7, Laravel Vite Plugin, PostCSS, Autoprefixer |
+| **UI extras** | Chart.js, SweetAlert2, Sonner, @tailwindcss/forms |
+| **Testing** | Pest 4 |
+| **Tooling** | Laravel Pint, Laravel Telescope, Laravel Pail, Laravel Sail |
 
 
 ## Quickstart (Local)
