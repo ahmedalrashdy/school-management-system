@@ -1,8 +1,47 @@
 # Integrated School Management System (ISMS)
 
+<p align="center">
+  <a href="https://school-management-system-production-5677.up.railway.app/">
+    <img src="https://img.shields.io/badge/🌐_Live_Demo-View_Online-2ea44f?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Live Demo" />
+  </a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Laravel-12.x-FF2D20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel 12" />
+  <img src="https://img.shields.io/badge/Inertia-2.x-9553E9?style=flat-square&logo=inertia&logoColor=white" alt="Inertia 2" />
+  <img src="https://img.shields.io/badge/React-19.x-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React 19" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-4.x-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind 4" />
+</p>
+
 A web-based, role-aware School Management System built with **Laravel 12**, **Blade**, **Livewire**, **Alpine.js**, and **Tailwind CSS 4**.
 
 This repository showcases a modular, service-oriented Laravel codebase (admin dashboard + portals) with robust academic operations: **timetables**, **attendance**, **examinations**, **marksheets**, **reports**, and **notifications**.
+
+---
+
+## Demo Video
+
+<div align="center">
+  <video src="github/demo/demo.mp4" controls width="100%" style="max-width: 100%; border-radius: 8px;"></video>
+</div>
+
+---
+
+## Screenshots
+
+<div align="center">
+
+| | | |
+|:-------------------------:|:-------------------------:|:-------------------------:|
+| <img src="github/demo/1.png" width="100%" alt="1"> | <img src="github/demo/2%20%282%29.png" width="100%" alt="2"> | <img src="github/demo/2%281%29.png" width="100%" alt="3"> |
+| <img src="github/demo/3%20%282%29.png" width="100%" alt="4"> | <img src="github/demo/3%20%284%29.png" width="100%" alt="5"> | <img src="github/demo/4.png" width="100%" alt="6"> |
+| <img src="github/demo/5.png" width="100%" alt="7"> | <img src="github/demo/6.png" width="100%" alt="8"> | <img src="github/demo/7.png" width="100%" alt="9"> |
+| <img src="github/demo/8.png" width="100%" alt="10"> | <img src="github/demo/99.png" width="100%" alt="11"> | <img src="github/demo/Screenshot%20%28100%29.png" width="100%" alt="12"> |
+| <img src="github/demo/Screenshot%20%28101%29.png" width="100%" alt="13"> | | |
+
+</div>
+
+---
 
 ## Highlights
 
