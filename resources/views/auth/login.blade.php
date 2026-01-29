@@ -27,6 +27,7 @@
             type="text"
             placeholder="أدخل البريد الإلكتروني أو رقم الهاتف"
             icon="fas fa-envelope"
+            value="guest@school.test"
             required
             autofocus
         />
@@ -38,6 +39,7 @@
             type="password"
             placeholder="أدخل كلمة المرور"
             icon="fas fa-lock"
+            value="12345678"
             required
         />
 

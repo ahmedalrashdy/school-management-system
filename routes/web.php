@@ -33,7 +33,6 @@ Route::get('test2', function () {
     return 'done';
 });
 Route::get('test', function () {
-
 });
 
 require __DIR__ . '/auth.php';
