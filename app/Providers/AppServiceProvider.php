@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use App\Support\GuestWriteBlocker;
 
@@ -33,6 +34,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Force HTTPS in production
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
+
         if (is_dir(resource_path('views/layouts'))) {
             Blade::anonymousComponentPath(resource_path('views/layouts'), 'layouts');
         } elseif (is_dir(resource_path('views/components/layouts'))) {
@@ -54,9 +60,10 @@ class AppServiceProvider extends ServiceProvider
 
         $this->registerGuestWriteGuards();
 
-        if (class_exists(PermissionEnum::class)
-            && ! class_exists('Perm', false)
-            && ! enum_exists('Perm', false)
+        if (
+            class_exists(PermissionEnum::class)
+            && !class_exists('Perm', false)
+            && !enum_exists('Perm', false)
         ) {
             class_alias(PermissionEnum::class, 'Perm');
         }
@@ -75,7 +82,7 @@ class AppServiceProvider extends ServiceProvider
 
                 $user = Auth::user();
 
-                if (! $user || ! $user->is_guest) {
+                if (!$user || !$user->is_guest) {
                     return;
                 }
 
