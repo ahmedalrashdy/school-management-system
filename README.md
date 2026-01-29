@@ -19,11 +19,7 @@ This repository showcases a modular, service-oriented Laravel codebase (admin da
 
 ---
 
-## Demo Video
 
-<div align="center">
-  <video src="github/demo/demo.mp4" controls width="100%" style="max-width: 100%; border-radius: 8px;"></video>
-</div>
 
 ---
 
