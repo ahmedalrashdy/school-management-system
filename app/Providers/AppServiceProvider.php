@@ -33,7 +33,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Blade::anonymousComponentPath(resource_path('views/layouts'), 'layouts');
+        if (is_dir(resource_path('views/layouts'))) {
+            Blade::anonymousComponentPath(resource_path('views/layouts'), 'layouts');
+        } elseif (is_dir(resource_path('views/components/layouts'))) {
+            Blade::anonymousComponentPath(resource_path('views/components/layouts'), 'layouts');
+        }
 
         // Super Admin bypass: Grant all permissions to users with is_admin = true
         Gate::before(function ($user, $ability) {
